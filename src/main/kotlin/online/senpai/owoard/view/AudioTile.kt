@@ -22,7 +22,11 @@ import de.jensd.fx.glyphs.icons525.Icons525View
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import javafx.scene.control.Button
+import javafx.scene.input.KeyCharacterCombination
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
+import javafx.scene.input.Mnemonic
 import javafx.scene.paint.Color
 import online.senpai.owoard.controller.HotkeyController
 import online.senpai.owoard.event.TilePlayEvent
@@ -71,12 +75,7 @@ class AudioTile : Fragment("Audio Tile") {
                 }
                 button(graphic = Icons525View(Icons525.LAUNCHPAD)) {
                     action {
-                        hotkeyController.registerTile(this@AudioTile, KeyCombination.keyCombination("P"))
-                        /*val kp = KeyCharacterCombination("P")
-                        val mnemonic = Mnemonic(playButton, kp)
-                        FX.primaryStage.scene.addMnemonic(mnemonic)
-                        playButton.fire()*/
-//                        playButton.shortcut("Ctrl+Y")
+                        playButton.shortcut("Alt + P")
                     }
                 }
             }

@@ -18,20 +18,14 @@
 package online.senpai.owoard.view
 
 import javafx.event.Event
-import online.senpai.owoard.event.FireHotkeyEvent
-import online.senpai.owoard.model.AudioObjectModel
+import javafx.scene.control.ScrollPane
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import tornadofx.*
 
 class MainView : View("Yet Another Soundboard? Please Stop!") {
-
-    init {
-        subscribe<FireHotkeyEvent> {
-            println("Fired")
-            Event.fireEvent(root.scene, it.event)
-        }
-    }
-
-    private val gridPaneView: GridPaneView by inject()
+    val gridPaneView: GridPaneView by inject()
+    var scrollpane: ScrollPane by singleAssign()
     override val root = borderpane {
         setPrefSize(600.0, 800.0)
         top {
@@ -44,15 +38,24 @@ class MainView : View("Yet Another Soundboard? Please Stop!") {
                         item("Quit")
                     }
                     menu("Create") {
-                        item("New item").action { gridPaneView.addItem(AudioObjectModel("", "test")) }
+                        item("Add handler").action {
+                            primaryStage.scene.addEventHandler(KeyEvent.KEY_PRESSED) {
+                                println("Scene handler -> $it")
+                            }
+                        }
                         item("Dump").action { gridPaneView.saveNodes() }
+                        item("Test").action {
+                            val ke = KeyEvent(KeyEvent.KEY_PRESSED,
+                                    "", "",
+                                    KeyCode.P, false, false, true, false)
+                            Event.fireEvent(this@borderpane, ke)
+                        }
                     }
                 }
-
             }
         }
         center {
-            scrollpane(fitToWidth = true, fitToHeight = true) {
+            scrollpane = scrollpane(fitToWidth = true, fitToHeight = true) {
                 add(gridPaneView)
             }
         }
