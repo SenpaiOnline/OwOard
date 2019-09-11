@@ -50,16 +50,21 @@ class HotkeyController : Controller() {
         enableConsumingEvents = consumeEvents
         GlobalScreen.registerNativeHook()
         GlobalScreen.addNativeKeyListener(object : NativeKeyListener {
-            override fun nativeKeyTyped(nativeKeyEvent: NativeKeyEvent) {}
+            override fun nativeKeyTyped(nativeKeyEvent: NativeKeyEvent) {
+
+            }
+            override fun nativeKeyReleased(nativeKeyEvent: NativeKeyEvent) {
+
+            }
 
             override fun nativeKeyPressed(nativeKeyEvent: NativeKeyEvent) {
                 Platform.runLater {
-                    val keyEvent: KeyEvent = nativeKeyEvent.toFxKeyEvent(KeyEvent.KEY_PRESSED)
-                    Event.fireEvent(mainView.root, keyEvent)
+                    if (!primaryStage.isFocused) {
+                        val keyEvent: KeyEvent = nativeKeyEvent.toFxKeyEvent(KeyEvent.KEY_PRESSED)
+                        Event.fireEvent(mainView.root, keyEvent)
+                    }
                 }
             }
-
-            override fun nativeKeyReleased(nativeKeyEvent: NativeKeyEvent) {}
         })
     }
 
