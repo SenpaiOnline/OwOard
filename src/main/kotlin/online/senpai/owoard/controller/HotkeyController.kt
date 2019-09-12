@@ -84,6 +84,7 @@ class HotkeyController : Controller() {
 }
 
 fun NativeKeyEvent.toFxKeyEvent(eventType: EventType<KeyEvent>): KeyEvent {
+    val text: String = NativeKeyEvent.getKeyText(this.keyCode) ?: ""
     val keyCode: KeyCode = when (this.keyCode) {
         NativeKeyEvent.VC_ESCAPE -> KeyCode.ESCAPE
         NativeKeyEvent.VC_F1 -> KeyCode.F1
@@ -163,14 +164,34 @@ fun NativeKeyEvent.toFxKeyEvent(eventType: EventType<KeyEvent>): KeyEvent {
         NativeKeyEvent.VC_ENTER -> KeyCode.ENTER
         NativeKeyEvent.VC_COMMA -> KeyCode.COMMA
         NativeKeyEvent.VC_PERIOD -> KeyCode.PERIOD
-        NativeKeyEvent.VC_SLASH -> KeyCode.SLASH
+        NativeKeyEvent.VC_SLASH -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.DIVIDE else KeyCode.SLASH
         NativeKeyEvent.VC_SPACE -> KeyCode.SPACE
+        NativeKeyEvent.VC_DELETE -> KeyCode.DELETE
 
         NativeKeyEvent.VC_SHIFT -> KeyCode.SHIFT
         NativeKeyEvent.VC_CONTROL -> KeyCode.CONTROL
         NativeKeyEvent.VC_ALT -> KeyCode.ALT
         NativeKeyEvent.VC_META -> KeyCode.META
         NativeKeyEvent.VC_CONTEXT_MENU -> KeyCode.CONTEXT_MENU
+
+        NativeKeyEvent.VC_UP -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD8 else KeyCode.UP
+        NativeKeyEvent.VC_DOWN -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD2 else KeyCode.DOWN
+        NativeKeyEvent.VC_LEFT -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD4 else KeyCode.LEFT
+        NativeKeyEvent.VC_RIGHT -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD6 else KeyCode.RIGHT
+        NativeKeyEvent.VC_HOME -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD7 else KeyCode.HOME
+        NativeKeyEvent.VC_END -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD1 else KeyCode.END
+        NativeKeyEvent.VC_PAGE_UP -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD9 else KeyCode.PAGE_UP
+        NativeKeyEvent.VC_PAGE_DOWN -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD3 else KeyCode.PAGE_DOWN
+        NativeKeyEvent.VC_INSERT -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD0 else KeyCode.INSERT
+        0x0E4E -> KeyCode.ADD
+        0xE4A -> KeyCode.SUBTRACT
+        0xE36 -> KeyCode.MINUS
+        NativeKeyEvent.VC_PRINTSCREEN -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.MULTIPLY else KeyCode.PRINTSCREEN
+
+        NativeKeyEvent.VC_SCROLL_LOCK -> KeyCode.SCROLL_LOCK
+        NativeKeyEvent.VC_PAUSE -> KeyCode.PAUSE
+        NativeKeyEvent.VC_SEPARATOR -> KeyCode.DECIMAL
+        NativeKeyEvent.VC_NUM_LOCK -> KeyCode.NUM_LOCK
 
         else -> KeyCode.UNDEFINED
     }
@@ -185,7 +206,7 @@ fun NativeKeyEvent.toFxKeyEvent(eventType: EventType<KeyEvent>): KeyEvent {
     return KeyEvent(
             eventType,
             unicodeCharacter,
-            "",
+            text,
             keyCode,
             (modifiers and NativeInputEvent.SHIFT_MASK) != 0,
             (modifiers and NativeInputEvent.CTRL_MASK) != 0,
