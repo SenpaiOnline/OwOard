@@ -17,7 +17,6 @@
 
 package online.senpai.owoard.controller
 
-import javafx.application.Platform
 import javafx.event.Event
 import javafx.event.EventType
 import javafx.scene.input.KeyCode
@@ -30,6 +29,8 @@ import org.jnativehook.NativeInputEvent
 import org.jnativehook.keyboard.NativeKeyEvent
 import org.jnativehook.keyboard.NativeKeyListener
 import tornadofx.*
+import java.util.concurrent.AbstractExecutorService
+import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.properties.Delegates
@@ -58,13 +59,28 @@ class HotkeyController : Controller() {
             }
 
             override fun nativeKeyPressed(nativeKeyEvent: NativeKeyEvent) {
-                Platform.runLater {
-                    if (!primaryStage.isFocused) {
-                        val keyEvent: KeyEvent = nativeKeyEvent.toFxKeyEvent(KeyEvent.KEY_PRESSED)
-                        Event.fireEvent(mainView.root, keyEvent)
-                    }
+                if (!primaryStage.isFocused) {
+                    val keyEvent: KeyEvent = nativeKeyEvent.toFxKeyEvent(KeyEvent.KEY_PRESSED)
+                    Event.fireEvent(mainView.root, keyEvent)
                 }
             }
+        })
+        GlobalScreen.setEventDispatcher(object : AbstractExecutorService() {
+            private var running = true
+
+            override fun shutdown() {
+                running = false
+            }
+
+            override fun shutdownNow(): List<Runnable> {
+                running = false
+                return arrayListOf()
+            }
+
+            override fun isShutdown(): Boolean = !running
+            override fun isTerminated(): Boolean = !running
+            override fun awaitTermination(amount: Long, units: TimeUnit): Boolean = true
+            override fun execute(action: Runnable) = action.run()
         })
     }
 
