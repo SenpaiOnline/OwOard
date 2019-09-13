@@ -17,29 +17,28 @@
 
 package online.senpai.owoard.controller
 
-import javafx.application.Platform
 import javafx.event.Event
 import javafx.event.EventType
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
 import online.senpai.owoard.view.AudioTile
+import online.senpai.owoard.view.MainView
 import org.jnativehook.GlobalScreen
+import org.jnativehook.NativeInputEvent
 import org.jnativehook.keyboard.NativeKeyEvent
 import org.jnativehook.keyboard.NativeKeyListener
 import tornadofx.*
+import java.util.concurrent.AbstractExecutorService
+import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.properties.Delegates
 
 class HotkeyController : Controller() {
+    private val mainView: MainView by inject()
     private var enableConsumingEvents: Boolean by Delegates.notNull()
-    private var shiftDown = false
-    private var ctrlDown = false
-    private var altDown = false
-    private var metaDown = false
-    private val map = mutableMapOf<KeyCombination, AudioTile>()
-
+    private val map = mutableMapOf<KeyCombination, AudioTile>().toObservable()
 
     init {
         Logger.getLogger(GlobalScreen::class.java.`package`.name).apply {
@@ -53,63 +52,35 @@ class HotkeyController : Controller() {
         GlobalScreen.registerNativeHook()
         GlobalScreen.addNativeKeyListener(object : NativeKeyListener {
             override fun nativeKeyTyped(nativeKeyEvent: NativeKeyEvent) {
-                Platform.runLater {
-                    val keyEvent = nativeKeyEvent.toFxKeyEvent(KeyEvent.KEY_TYPED,
-                            shiftDown,
-                            ctrlDown,
-                            altDown,
-                            metaDown
-                    )
-                    println(keyEvent)
-                    map.forEach { (keyCombination, _) ->
-                        if (keyCombination.match(keyEvent)) {
-                            fireTile(keyCombination)
-                            return@runLater
-                        }
-                    }
 
-//                    fireTile(nativeKeyEvent.)
-//                    Event.fireEvent(Event.NULL_SOURCE_TARGET, keyEvent)
-                }
+            }
+            override fun nativeKeyReleased(nativeKeyEvent: NativeKeyEvent) {
+
             }
 
             override fun nativeKeyPressed(nativeKeyEvent: NativeKeyEvent) {
-                Platform.runLater {
-                    when (nativeKeyEvent.keyCode) {
-                        NativeKeyEvent.VC_SHIFT -> !shiftDown
-                        NativeKeyEvent.VC_CONTROL -> !ctrlDown
-                        NativeKeyEvent.VC_ALT -> !altDown
-                        NativeKeyEvent.VC_META -> !metaDown
-                    }
-                    val keyEvent: KeyEvent = nativeKeyEvent.toFxKeyEvent(
-                            KeyEvent.KEY_PRESSED
-                            /*shiftDown,
-                            ctrlDown,
-                            altDown,
-                            metaDown*/
-                    )
-                    Event.fireEvent(Event.NULL_SOURCE_TARGET, keyEvent)
+                if (!primaryStage.isFocused) {
+                    val keyEvent: KeyEvent = nativeKeyEvent.toFxKeyEvent(KeyEvent.KEY_PRESSED)
+                    Event.fireEvent(mainView.root, keyEvent)
                 }
+            }
+        })
+        GlobalScreen.setEventDispatcher(object : AbstractExecutorService() {
+            private var running = true
+
+            override fun shutdown() {
+                running = false
             }
 
-            override fun nativeKeyReleased(nativeKeyEvent: NativeKeyEvent) {
-                Platform.runLater {
-                    when (nativeKeyEvent.keyCode) {
-                        NativeKeyEvent.VC_SHIFT -> !shiftDown
-                        NativeKeyEvent.VC_CONTROL -> !ctrlDown
-                        NativeKeyEvent.VC_ALT -> !altDown
-                        NativeKeyEvent.VC_META -> !metaDown
-                    }
-                    val keyEvent: KeyEvent = nativeKeyEvent.toFxKeyEvent(
-                            KeyEvent.KEY_RELEASED
-                            /*shiftDown,
-                            ctrlDown,
-                            altDown,
-                            metaDown*/
-                    )
-                    Event.fireEvent(Event.NULL_SOURCE_TARGET, keyEvent)
-                }
+            override fun shutdownNow(): List<Runnable> {
+                running = false
+                return arrayListOf()
             }
+
+            override fun isShutdown(): Boolean = !running
+            override fun isTerminated(): Boolean = !running
+            override fun awaitTermination(amount: Long, units: TimeUnit): Boolean = true
+            override fun execute(action: Runnable) = action.run()
         })
     }
 
@@ -128,13 +99,8 @@ class HotkeyController : Controller() {
     }
 }
 
-fun NativeKeyEvent.toFxKeyEvent(
-        eventType: EventType<KeyEvent>,
-        shiftDown: Boolean = false,
-        ctrlDown: Boolean = false,
-        altDown: Boolean = false,
-        metaDown: Boolean = false
-): KeyEvent {
+fun NativeKeyEvent.toFxKeyEvent(eventType: EventType<KeyEvent>): KeyEvent {
+    val text: String = NativeKeyEvent.getKeyText(this.keyCode) ?: ""
     val keyCode: KeyCode = when (this.keyCode) {
         NativeKeyEvent.VC_ESCAPE -> KeyCode.ESCAPE
         NativeKeyEvent.VC_F1 -> KeyCode.F1
@@ -214,8 +180,9 @@ fun NativeKeyEvent.toFxKeyEvent(
         NativeKeyEvent.VC_ENTER -> KeyCode.ENTER
         NativeKeyEvent.VC_COMMA -> KeyCode.COMMA
         NativeKeyEvent.VC_PERIOD -> KeyCode.PERIOD
-        NativeKeyEvent.VC_SLASH -> KeyCode.SLASH
+        NativeKeyEvent.VC_SLASH -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.DIVIDE else KeyCode.SLASH
         NativeKeyEvent.VC_SPACE -> KeyCode.SPACE
+        NativeKeyEvent.VC_DELETE -> KeyCode.DELETE
 
         NativeKeyEvent.VC_SHIFT -> KeyCode.SHIFT
         NativeKeyEvent.VC_CONTROL -> KeyCode.CONTROL
@@ -223,21 +190,44 @@ fun NativeKeyEvent.toFxKeyEvent(
         NativeKeyEvent.VC_META -> KeyCode.META
         NativeKeyEvent.VC_CONTEXT_MENU -> KeyCode.CONTEXT_MENU
 
+        NativeKeyEvent.VC_UP -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD8 else KeyCode.UP
+        NativeKeyEvent.VC_DOWN -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD2 else KeyCode.DOWN
+        NativeKeyEvent.VC_LEFT -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD4 else KeyCode.LEFT
+        NativeKeyEvent.VC_RIGHT -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD6 else KeyCode.RIGHT
+        NativeKeyEvent.VC_HOME -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD7 else KeyCode.HOME
+        NativeKeyEvent.VC_END -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD1 else KeyCode.END
+        NativeKeyEvent.VC_CLEAR -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD5 else KeyCode.CLEAR
+        NativeKeyEvent.VC_PAGE_UP -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD9 else KeyCode.PAGE_UP
+        NativeKeyEvent.VC_PAGE_DOWN -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD3 else KeyCode.PAGE_DOWN
+        NativeKeyEvent.VC_INSERT -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD0 else KeyCode.INSERT
+        0xE4E -> KeyCode.ADD
+        0xE4A -> KeyCode.SUBTRACT
+        0xE36 -> KeyCode.MINUS
+        NativeKeyEvent.VC_PRINTSCREEN -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.MULTIPLY else KeyCode.PRINTSCREEN
+
+        NativeKeyEvent.VC_SCROLL_LOCK -> KeyCode.SCROLL_LOCK
+        NativeKeyEvent.VC_PAUSE -> KeyCode.PAUSE
+        NativeKeyEvent.VC_SEPARATOR -> KeyCode.DECIMAL
+        NativeKeyEvent.VC_NUM_LOCK -> KeyCode.NUM_LOCK
+
         else -> KeyCode.UNDEFINED
     }
+
     val unicodeCharacter: String = if (eventType == KeyEvent.KEY_TYPED) {
         this.keyChar.toString()
     } else {
         KeyEvent.CHAR_UNDEFINED
     }
+
+    val modifiers: Int = this.modifiers
     return KeyEvent(
             eventType,
             unicodeCharacter,
-            "",
+            text,
             keyCode,
-            shiftDown,
-            ctrlDown,
-            altDown,
-            metaDown
+            (modifiers and NativeInputEvent.SHIFT_MASK) != 0,
+            (modifiers and NativeInputEvent.CTRL_MASK) != 0,
+            (modifiers and NativeInputEvent.ALT_MASK) != 0,
+            (modifiers and NativeInputEvent.META_MASK) != 0
     )
 }
