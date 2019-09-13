@@ -180,10 +180,11 @@ fun NativeKeyEvent.toFxKeyEvent(eventType: EventType<KeyEvent>): KeyEvent {
         NativeKeyEvent.VC_RIGHT -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD6 else KeyCode.RIGHT
         NativeKeyEvent.VC_HOME -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD7 else KeyCode.HOME
         NativeKeyEvent.VC_END -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD1 else KeyCode.END
+        NativeKeyEvent.VC_CLEAR -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD5 else KeyCode.CLEAR
         NativeKeyEvent.VC_PAGE_UP -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD9 else KeyCode.PAGE_UP
         NativeKeyEvent.VC_PAGE_DOWN -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD3 else KeyCode.PAGE_DOWN
         NativeKeyEvent.VC_INSERT -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD0 else KeyCode.INSERT
-        0x0E4E -> KeyCode.ADD
+        0xE4E -> KeyCode.ADD
         0xE4A -> KeyCode.SUBTRACT
         0xE36 -> KeyCode.MINUS
         NativeKeyEvent.VC_PRINTSCREEN -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.MULTIPLY else KeyCode.PRINTSCREEN
