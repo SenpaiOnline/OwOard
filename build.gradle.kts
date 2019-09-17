@@ -35,7 +35,9 @@ dependencies {
     implementation("com.1stleg:jnativehook:$jnativehookVersion")
     implementation("uk.co.caprica:vlcj:$vlcjVersion")
     implementation("no.tornado:tornadofx:$tornadofxVersion")
-    implementation("eu.hansolo:tilesfx:$tilesfxVersion")
+    implementation("eu.hansolo:tilesfx:$tilesfxVersion") {
+        exclude(group = "junit")
+    }
     implementation("de.jensd:fontawesomefx-commons:$fontawesomefxCommonVersion")
     implementation("de.jensd:fontawesomefx-icons525:$fontawesomefxicons525Version")
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
