@@ -6,6 +6,7 @@ val tilesfxVersion: String by project
 val vlcjVersion: String by project
 val fontawesomefxCommonVersion: String by project
 val fontawesomefxicons525Version: String by project
+val junitJupiterVersion: String by project
 
 plugins {
     application
@@ -33,11 +34,19 @@ dependencies {
     implementation("eu.hansolo:tilesfx:$tilesfxVersion")
     implementation("de.jensd:fontawesomefx-commons:$fontawesomefxCommonVersion")
     implementation("de.jensd:fontawesomefx-icons525:$fontawesomefxicons525Version")
+    testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
 }
 
 tasks.withType<KotlinCompile>().all {
