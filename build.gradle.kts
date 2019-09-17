@@ -7,6 +7,9 @@ val vlcjVersion: String by project
 val fontawesomefxCommonVersion: String by project
 val fontawesomefxicons525Version: String by project
 val junitJupiterVersion: String by project
+val testfxCoreVersion: String by project
+val hamcrestVersion: String by project
+val openjfxMonocleVersion: String by project
 
 plugins {
     application
@@ -36,6 +39,9 @@ dependencies {
     implementation("de.jensd:fontawesomefx-commons:$fontawesomefxCommonVersion")
     implementation("de.jensd:fontawesomefx-icons525:$fontawesomefxicons525Version")
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
+    testImplementation("org.testfx:testfx-core:$testfxCoreVersion")
+    testImplementation("org.hamcrest:hamcrest:$hamcrestVersion")
+    testImplementation("org.testfx:openjfx-monocle:$openjfxMonocleVersion")
 }
 
 java {
