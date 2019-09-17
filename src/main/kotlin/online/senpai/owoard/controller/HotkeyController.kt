@@ -17,28 +17,29 @@
 
 package online.senpai.owoard.controller
 
-import javafx.event.Event
-import javafx.event.EventType
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.collections.FXCollections
+import javafx.collections.ObservableMap
 import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
-import javafx.scene.input.KeyEvent
 import online.senpai.owoard.view.AudioTile
-import online.senpai.owoard.view.MainView
 import org.jnativehook.GlobalScreen
+import org.jnativehook.NativeHookException
 import org.jnativehook.NativeInputEvent
 import org.jnativehook.keyboard.NativeKeyEvent
 import org.jnativehook.keyboard.NativeKeyListener
 import tornadofx.*
+import java.lang.IllegalArgumentException
 import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 import java.util.logging.Logger
-import kotlin.properties.Delegates
 
 class HotkeyController : Controller() {
-    private val mainView: MainView by inject()
-    private var enableConsumingEvents: Boolean by Delegates.notNull()
-    private val map = mutableMapOf<KeyCombination, AudioTile>().toObservable()
+    val hotkeys: ObservableMap<KeyCodeCombination, AudioTile> = FXCollections.observableHashMap()
+    val consumeEventsProperty = SimpleBooleanProperty(this, "consumeEvents", false)
+    var consumeEvents by consumeEventsProperty
 
     init {
         Logger.getLogger(GlobalScreen::class.java.`package`.name).apply {
@@ -47,21 +48,27 @@ class HotkeyController : Controller() {
         }
     }
 
-    fun initialize(consumeEvents: Boolean = false) {
-        enableConsumingEvents = consumeEvents
+    @Throws(NativeHookException::class)
+    fun initialize() {
         GlobalScreen.registerNativeHook()
         GlobalScreen.addNativeKeyListener(object : NativeKeyListener {
             override fun nativeKeyTyped(nativeKeyEvent: NativeKeyEvent) {
-
             }
-            override fun nativeKeyReleased(nativeKeyEvent: NativeKeyEvent) {
 
+            override fun nativeKeyReleased(nativeKeyEvent: NativeKeyEvent) {
             }
 
             override fun nativeKeyPressed(nativeKeyEvent: NativeKeyEvent) {
-                if (!primaryStage.isFocused) {
-                    val keyEvent: KeyEvent = nativeKeyEvent.toFxKeyEvent(KeyEvent.KEY_PRESSED)
-                    Event.fireEvent(mainView.root, keyEvent)
+                val keyCodeCombination: KeyCodeCombination = nativeKeyEvent.toFxKeyCombination()
+                val tile: AudioTile? = hotkeys[keyCodeCombination]
+                if (tile != null) {
+                    tile.playButton.fire()
+                    if (consumeEvents) {
+                        NativeInputEvent::class.java.getDeclaredField("reserved").apply {  // Currently unsupported on X11
+                            isAccessible = true
+                            setShort(nativeKeyEvent, 0x01.toShort())
+                        }
+                    }
                 }
             }
         })
@@ -90,17 +97,18 @@ class HotkeyController : Controller() {
         }
     }
 
-    fun registerTile(tile: AudioTile, key: KeyCombination) {
-        map[key] = tile
+    @Throws(IllegalArgumentException::class)
+    fun registerHotkey(keyCodeCombination: KeyCodeCombination, tile: AudioTile) {
+        require(!hotkeys.contains(keyCodeCombination)) { "Hotkey is already in use!" }
+        hotkeys[keyCodeCombination] = tile
     }
 
-    fun fireTile(key: KeyCombination) {
-        map[key]?.playButton?.fire()
+    fun removeHotkey(keyCodeCombination: KeyCodeCombination) {
+        hotkeys.remove(keyCodeCombination)
     }
 }
 
-fun NativeKeyEvent.toFxKeyEvent(eventType: EventType<KeyEvent>): KeyEvent {
-    val text: String = NativeKeyEvent.getKeyText(this.keyCode) ?: ""
+fun NativeKeyEvent.toFxKeyCombination(): KeyCodeCombination {
     val keyCode: KeyCode = when (this.keyCode) {
         NativeKeyEvent.VC_ESCAPE -> KeyCode.ESCAPE
         NativeKeyEvent.VC_F1 -> KeyCode.F1
@@ -213,21 +221,10 @@ fun NativeKeyEvent.toFxKeyEvent(eventType: EventType<KeyEvent>): KeyEvent {
         else -> KeyCode.UNDEFINED
     }
 
-    val unicodeCharacter: String = if (eventType == KeyEvent.KEY_TYPED) {
-        this.keyChar.toString()
-    } else {
-        KeyEvent.CHAR_UNDEFINED
-    }
-
-    val modifiers: Int = this.modifiers
-    return KeyEvent(
-            eventType,
-            unicodeCharacter,
-            text,
-            keyCode,
-            (modifiers and NativeInputEvent.SHIFT_MASK) != 0,
-            (modifiers and NativeInputEvent.CTRL_MASK) != 0,
-            (modifiers and NativeInputEvent.ALT_MASK) != 0,
-            (modifiers and NativeInputEvent.META_MASK) != 0
-    )
+    val modifiers: MutableList<KeyCombination.Modifier> = mutableListOf()
+    if ((this.modifiers and NativeInputEvent.SHIFT_MASK) != 0) modifiers.add(KeyCombination.SHIFT_DOWN)
+    if ((this.modifiers and NativeInputEvent.CTRL_MASK) != 0) modifiers.add(KeyCombination.CONTROL_DOWN)
+    if ((this.modifiers and NativeInputEvent.ALT_MASK) != 0) modifiers.add(KeyCombination.ALT_DOWN)
+    if ((this.modifiers and NativeInputEvent.META_MASK) != 0) modifiers.add(KeyCombination.META_DOWN)
+    return KeyCodeCombination(keyCode, *modifiers.toTypedArray())
 }
