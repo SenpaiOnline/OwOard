@@ -17,7 +17,9 @@
 
 package online.senpai.owoard.model
 
+import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
+import javafx.scene.input.KeyCodeCombination
 import tornadofx.*
 
 class AudioObjectModel(name: String, path: String) : JsonModel {
@@ -26,6 +28,9 @@ class AudioObjectModel(name: String, path: String) : JsonModel {
 
     val pathProperty = SimpleStringProperty(this, "path", path)
     var path by pathProperty
+
+    val hotkeyProperty = SimpleObjectProperty<KeyCodeCombination>(this, "hotkey", null)
+    var hotkey by hotkeyProperty
 
     override fun toJSON(json: JsonBuilder) {
         with(json) {
