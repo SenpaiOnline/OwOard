@@ -22,11 +22,10 @@ import de.jensd.fx.glyphs.icons525.Icons525View
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import javafx.scene.control.Button
-import javafx.scene.input.KeyCharacterCombination
+import javafx.scene.control.ButtonType
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
-import javafx.scene.input.Mnemonic
 import javafx.scene.paint.Color
 import online.senpai.owoard.controller.HotkeyController
 import online.senpai.owoard.event.TilePlayEvent
@@ -35,7 +34,7 @@ import tornadofx.*
 import java.io.File
 
 class AudioTile : Fragment("Audio Tile") {
-    val hotkeyController: HotkeyController by inject()
+    private val hotkeyController: HotkeyController by inject()
     var playButton: Button by singleAssign()
     var stopButton: Button by singleAssign()
 
@@ -60,6 +59,9 @@ class AudioTile : Fragment("Audio Tile") {
         vbox {
             label(model.nameProperty).textFill = Color.WHITE
             label("Status").textFill = Color.WHITE
+            label(model.hotkeyProperty.stringBinding { if (it == null) "No hotkey" else it.displayText }) {
+                textFill = Color.WHITE
+            }
             spacer()
             hbox {
                 alignment = Pos.BOTTOM_CENTER
@@ -75,7 +77,7 @@ class AudioTile : Fragment("Audio Tile") {
                 }
                 button(graphic = Icons525View(Icons525.LAUNCHPAD)) {
                     action {
-                        playButton.shortcut("Alt + P")
+                        setupHotkey()
                     }
                 }
             }
@@ -85,6 +87,28 @@ class AudioTile : Fragment("Audio Tile") {
                 button(graphic = Icons525View(Icons525.STOP))
                 button(graphic = Icons525View(Icons525.STOP))
             }
+        }
+    }
+
+    override fun onDelete() {
+        removeHotkey()
+        super.onDelete()
+    }
+
+    private fun setupHotkey() {
+        val hotkey = KeyCodeCombination(KeyCode.P, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN)
+        try {
+            hotkeyController.registerHotkey(hotkey,this@AudioTile)
+            model.hotkey = hotkey
+        }
+        catch (e: IllegalArgumentException) {
+            error("Hotkey is already in use!", "Hotkey ${hotkey.displayText} is already in use!", ButtonType.OK)
+        }
+    }
+
+    private fun removeHotkey() {
+        if (model.hotkey != null) {
+            hotkeyController.removeHotkey(model.hotkey)
         }
     }
 }
