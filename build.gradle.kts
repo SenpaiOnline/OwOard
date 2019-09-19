@@ -10,6 +10,8 @@ val junitJupiterVersion: String by project
 val testfxCoreVersion: String by project
 val hamcrestVersion: String by project
 val openjfxMonocleVersion: String by project
+val kotlinLoggingVersion: String by project
+val logbackClassicVersion: String by project
 
 plugins {
     application
@@ -35,11 +37,11 @@ dependencies {
     implementation("com.1stleg:jnativehook:$jnativehookVersion")
     implementation("uk.co.caprica:vlcj:$vlcjVersion")
     implementation("no.tornado:tornadofx:$tornadofxVersion")
-    implementation("eu.hansolo:tilesfx:$tilesfxVersion") {
-        exclude(group = "junit")
-    }
+    implementation("eu.hansolo:tilesfx:$tilesfxVersion") { exclude(group = "junit") }
     implementation("de.jensd:fontawesomefx-commons:$fontawesomefxCommonVersion")
     implementation("de.jensd:fontawesomefx-icons525:$fontawesomefxicons525Version")
+    implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
+    implementation("ch.qos.logback:logback-classic:$logbackClassicVersion")
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
     testImplementation("org.testfx:testfx-core:$testfxCoreVersion")
     testImplementation("org.hamcrest:hamcrest:$hamcrestVersion")
