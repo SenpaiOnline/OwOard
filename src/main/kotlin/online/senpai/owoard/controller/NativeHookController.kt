@@ -17,29 +17,29 @@
 
 package online.senpai.owoard.controller
 
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.collections.FXCollections
-import javafx.collections.ObservableMap
+import javafx.application.Platform
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
-import online.senpai.owoard.view.AudioTile
+import mu.KLogger
+import mu.KotlinLogging
 import org.jnativehook.GlobalScreen
 import org.jnativehook.NativeHookException
 import org.jnativehook.NativeInputEvent
 import org.jnativehook.keyboard.NativeKeyEvent
 import org.jnativehook.keyboard.NativeKeyListener
 import tornadofx.*
-import java.lang.IllegalArgumentException
 import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 import java.util.logging.Logger
 
-class HotkeyController : Controller() {
-    val hotkeys: ObservableMap<KeyCodeCombination, AudioTile> = FXCollections.observableHashMap()
-    val consumeEventsProperty = SimpleBooleanProperty(this, "consumeEvents", false)
-    var consumeEvents by consumeEventsProperty
+private val logger: KLogger = KotlinLogging.logger {}
+
+class NativeHookController : Controller() {
+    private val keyEventDispatcher: KeyEventDispatcher by inject()
+    /*val consumeEventsProperty = SimpleBooleanProperty(this, "consumeEvents", false)
+    var consumeEvents by consumeEventsProperty*/
 
     init {
         Logger.getLogger(GlobalScreen::class.java.`package`.name).apply {
@@ -59,16 +59,11 @@ class HotkeyController : Controller() {
             }
 
             override fun nativeKeyPressed(nativeKeyEvent: NativeKeyEvent) {
-                val keyCodeCombination: KeyCodeCombination = nativeKeyEvent.toFxKeyCombination()
-                val tile: AudioTile? = hotkeys[keyCodeCombination]
-                if (tile != null) {
-                    tile.playButton.fire()
-                    if (consumeEvents) {
-                        NativeInputEvent::class.java.getDeclaredField("reserved").apply {  // Currently unsupported on X11
-                            isAccessible = true
-                            setShort(nativeKeyEvent, 0x01.toShort())
-                        }
-                    }
+                val keyCombination: KeyCodeCombination = nativeKeyEvent.toFxKeyCombination()
+                logger.debug { "Native key: ${nativeKeyEvent.keyCode.toString(16)}, modifiers mask: ${nativeKeyEvent.modifiers}" }
+                logger.debug { "JavaFX key combination: ${keyCombination.displayText}" }
+                Platform.runLater {
+                    keyEventDispatcher.keyCombinationPressed(keyCombination)
                 }
             }
         })
@@ -87,7 +82,7 @@ class HotkeyController : Controller() {
             override fun isShutdown(): Boolean = !running
             override fun isTerminated(): Boolean = !running
             override fun awaitTermination(amount: Long, units: TimeUnit): Boolean = true
-            override fun execute(action: Runnable) = action.run()
+            override fun execute(action: Runnable): Unit = action.run()
         })
     }
 
@@ -95,16 +90,6 @@ class HotkeyController : Controller() {
         if (GlobalScreen.isNativeHookRegistered()) {
             GlobalScreen.unregisterNativeHook()
         }
-    }
-
-    @Throws(IllegalArgumentException::class)
-    fun registerHotkey(keyCodeCombination: KeyCodeCombination, tile: AudioTile) {
-        require(!hotkeys.contains(keyCodeCombination)) { "Hotkey is already in use!" }
-        hotkeys[keyCodeCombination] = tile
-    }
-
-    fun removeHotkey(keyCodeCombination: KeyCodeCombination) {
-        hotkeys.remove(keyCodeCombination)
     }
 }
 

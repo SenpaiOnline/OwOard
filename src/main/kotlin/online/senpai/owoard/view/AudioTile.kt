@@ -27,14 +27,20 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.paint.Color
-import online.senpai.owoard.controller.HotkeyController
+import mu.KLogger
+import mu.KotlinLogging
+import online.senpai.owoard.KeyEventSubscriber
+import online.senpai.owoard.KeyEventType
+import online.senpai.owoard.controller.KeyEventDispatcher
 import online.senpai.owoard.event.TilePlayEvent
 import online.senpai.owoard.model.AudioObjectModel
 import tornadofx.*
 import java.io.File
 
-class AudioTile : Fragment("Audio Tile") {
-    private val hotkeyController: HotkeyController by inject()
+private val logger: KLogger = KotlinLogging.logger {}
+
+class AudioTile : Fragment("Audio Tile"), KeyEventSubscriber {
+    private val keyEventDispatcher: KeyEventDispatcher by inject()
     var playButton: Button by singleAssign()
     var stopButton: Button by singleAssign()
 
@@ -72,7 +78,7 @@ class AudioTile : Fragment("Audio Tile") {
                 }
                 stopButton = button(graphic = Icons525View(Icons525.STOP)) {
                     setOnKeyTyped {
-                        println(it)
+                        logger.debug { "Stop button pressed" }
                     }
                 }
                 button(graphic = Icons525View(Icons525.LAUNCHPAD)) {
@@ -98,17 +104,24 @@ class AudioTile : Fragment("Audio Tile") {
     private fun setupHotkey() {
         val hotkey = KeyCodeCombination(KeyCode.P, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN)
         try {
-            hotkeyController.registerHotkey(hotkey,this@AudioTile)
+            keyEventDispatcher.subscribeToSpecificHotkey(hotkey,this@AudioTile)
             model.hotkey = hotkey
         }
         catch (e: IllegalArgumentException) {
-            error("Hotkey is already in use!", "Hotkey ${hotkey.displayText} is already in use!", ButtonType.OK)
+            error("Already in use!", "Hotkey ${hotkey.displayText} is already in use!", ButtonType.OK)
         }
     }
 
     private fun removeHotkey() {
         if (model.hotkey != null) {
-            hotkeyController.removeHotkey(model.hotkey)
+            keyEventDispatcher.removeSubscriberByHotkey(model.hotkey)
+        }
+    }
+
+    override fun handleKeyEvent(keyEventType: KeyEventType) {
+        when (keyEventType) {
+            KeyEventType.PLAY -> playButton.fire()
+            KeyEventType.STOP -> stopButton.fire()
         }
     }
 }
