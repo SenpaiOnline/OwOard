@@ -20,20 +20,21 @@ package online.senpai.owoard
 import javafx.application.Platform
 import javafx.stage.Stage
 import online.senpai.owoard.controller.AudioController
-import online.senpai.owoard.controller.HotkeyController
+import online.senpai.owoard.controller.NativeHookController
 import online.senpai.owoard.view.MainView
 import tornadofx.*
 import kotlin.system.exitProcess
 
 class OwoardApp: App(MainView::class) {
-    private val audioController: AudioController = AudioController()
-    private val hotkeyController: HotkeyController by inject()
+    private val audioController: AudioController by inject()
+    private val nativeHookController: NativeHookController by inject()
 
     override fun start(stage: Stage) {
-        hotkeyController.initialize()
+        audioController.initialize()
+        nativeHookController.initialize()
         stage.setOnCloseRequest {
             audioController.destroy()
-            hotkeyController.destroy()
+            nativeHookController.destroy()
             Platform.exit()
             exitProcess(0)
         }
