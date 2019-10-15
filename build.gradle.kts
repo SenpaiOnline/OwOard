@@ -71,3 +71,15 @@ kotlin.sourceSets["test"].kotlin.srcDirs("src/test/kotlin")
 
 sourceSets["main"].resources.srcDirs("src/main/resources")
 sourceSets["test"].resources.srcDirs("src/test/resources")
+
+tasks.register<JavaExec>("fontTest") {
+    group = "playground"
+    main = "online.senpai.owoard.playground.FontTest"
+    classpath = sourceSets.test.get().runtimeClasspath
+}
+
+tasks.register<JavaExec>("jNativeHook") {
+    group = "playground"
+    main = "online.senpai.owoard.playground.JNativeHookKt"
+    classpath = sourceSets.test.get().runtimeClasspath
+}
