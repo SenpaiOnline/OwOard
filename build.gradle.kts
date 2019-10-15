@@ -12,6 +12,7 @@ val hamcrestVersion: String by project
 val openjfxMonocleVersion: String by project
 val kotlinLoggingVersion: String by project
 val logbackClassicVersion: String by project
+val jnaVersion: String by project
 
 plugins {
     application
@@ -42,6 +43,8 @@ dependencies {
     implementation("de.jensd:fontawesomefx-icons525:$fontawesomefxicons525Version")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
     implementation("ch.qos.logback:logback-classic:$logbackClassicVersion")
+    implementation("net.java.dev.jna:jna:$jnaVersion")
+    implementation("net.java.dev.jna:jna-platform:$jnaVersion")
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
     testImplementation("org.testfx:testfx-core:$testfxCoreVersion")
     testImplementation("org.hamcrest:hamcrest:$hamcrestVersion")
