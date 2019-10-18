@@ -30,7 +30,7 @@ import tornadofx.*
 
 class KeyEventDispatcher : Controller() {
     val subscribersToSpecificHotkey: ObservableMap<KeyCodeCombination, KeyEventSubscriber> = FXCollections.observableHashMap()
-    val recordLastPressedKeyCombinationProperty = SimpleBooleanProperty()
+    val recordLastPressedKeyCombinationProperty = SimpleBooleanProperty(false)
     var recordLastPressedKeyCombination: Boolean by recordLastPressedKeyCombinationProperty
     val lastPressedKeyCombinationProperty = SimpleObjectProperty<KeyCodeCombination>()
     var lastPressedKeyCombination: KeyCodeCombination? by lastPressedKeyCombinationProperty
