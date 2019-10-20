@@ -177,10 +177,14 @@ fun NativeKeyEvent.toFxKeyCombination(): KeyCodeCombination {
         NativeKeyEvent.VC_SPACE -> KeyCode.SPACE
         NativeKeyEvent.VC_DELETE -> KeyCode.DELETE
 
-        NativeKeyEvent.VC_SHIFT -> KeyCode.SHIFT
-        NativeKeyEvent.VC_CONTROL -> KeyCode.CONTROL
-        NativeKeyEvent.VC_ALT -> KeyCode.ALT
-        NativeKeyEvent.VC_META -> KeyCode.META
+        NativeKeyEvent.VC_SHIFT_L -> KeyCode.SHIFT
+        NativeKeyEvent.VC_SHIFT_R -> KeyCode.SHIFT
+        NativeKeyEvent.VC_CONTROL_L -> KeyCode.CONTROL
+        NativeKeyEvent.VC_CONTROL_R -> KeyCode.CONTROL
+        NativeKeyEvent.VC_ALT_L -> KeyCode.ALT
+        NativeKeyEvent.VC_ALT_R -> KeyCode.ALT
+        NativeKeyEvent.VC_META_L -> KeyCode.META
+        NativeKeyEvent.VC_META_R -> KeyCode.META
         NativeKeyEvent.VC_CONTEXT_MENU -> KeyCode.CONTEXT_MENU
 
         NativeKeyEvent.VC_UP -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD8 else KeyCode.UP
@@ -189,7 +193,7 @@ fun NativeKeyEvent.toFxKeyCombination(): KeyCodeCombination {
         NativeKeyEvent.VC_RIGHT -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD6 else KeyCode.RIGHT
         NativeKeyEvent.VC_HOME -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD7 else KeyCode.HOME
         NativeKeyEvent.VC_END -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD1 else KeyCode.END
-        NativeKeyEvent.VC_CLEAR -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD5 else KeyCode.CLEAR
+        0xE04C -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD5 else KeyCode.CLEAR
         NativeKeyEvent.VC_PAGE_UP -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD9 else KeyCode.PAGE_UP
         NativeKeyEvent.VC_PAGE_DOWN -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD3 else KeyCode.PAGE_DOWN
         NativeKeyEvent.VC_INSERT -> if (this.keyLocation == NativeKeyEvent.KEY_LOCATION_NUMPAD) KeyCode.NUMPAD0 else KeyCode.INSERT
@@ -200,7 +204,8 @@ fun NativeKeyEvent.toFxKeyCombination(): KeyCodeCombination {
 
         NativeKeyEvent.VC_SCROLL_LOCK -> KeyCode.SCROLL_LOCK
         NativeKeyEvent.VC_PAUSE -> KeyCode.PAUSE
-        NativeKeyEvent.VC_SEPARATOR -> KeyCode.DECIMAL
+
+        NativeKeyEvent.VC_KP_SEPARATOR -> KeyCode.DECIMAL
         NativeKeyEvent.VC_NUM_LOCK -> KeyCode.NUM_LOCK
 
         else -> KeyCode.UNDEFINED
