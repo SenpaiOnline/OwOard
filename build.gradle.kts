@@ -17,8 +17,9 @@ val jnaVersion: String by project
 plugins {
     application
     java
-    kotlin("jvm") version "1.3.50"
-    id("com.github.johnrengelman.shadow") version "5.1.0"
+    kotlin("jvm") version "1.3.70"
+    id("com.github.johnrengelman.shadow") version "5.2.0"
+    id("com.github.ben-manes.versions") version "0.28.0"
 }
 
 application {
@@ -35,20 +36,22 @@ repositories {
 }
 
 dependencies {
-    implementation("com.1stleg:jnativehook:$jnativehookVersion")
-    implementation("uk.co.caprica:vlcj:$vlcjVersion")
-    implementation("no.tornado:tornadofx:$tornadofxVersion")
-    implementation("eu.hansolo:tilesfx:$tilesfxVersion") { exclude(group = "junit") }
-    implementation("de.jensd:fontawesomefx-commons:$fontawesomefxCommonVersion")
-    implementation("de.jensd:fontawesomefx-icons525:$fontawesomefxicons525Version")
-    implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
-    implementation("ch.qos.logback:logback-classic:$logbackClassicVersion")
-    implementation("net.java.dev.jna:jna:$jnaVersion")
-    implementation("net.java.dev.jna:jna-platform:$jnaVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
-    testImplementation("org.testfx:testfx-core:$testfxCoreVersion")
-    testImplementation("org.hamcrest:hamcrest:$hamcrestVersion")
-    testImplementation("org.testfx:openjfx-monocle:$openjfxMonocleVersion")
+    implementation(Libraries.Fx.tornadofx)
+    implementation(Libraries.Fx.tilesfx) { exclude(group = "junit") }
+    implementation(Libraries.Fx.fontawesomefxCommon)
+    implementation(Libraries.Fx.fontawesomefxIcons525)
+
+    implementation(Libraries.jnativehook)
+    implementation(Libraries.vlcj)
+    implementation(Libraries.kfinStateMachine)
+
+    implementation(Libraries.kotlinLogging)
+    implementation(Libraries.logbackClassic)
+
+    testImplementation(TestLibraries.junitJupiter)
+    testImplementation(TestLibraries.testFxCore)
+    testImplementation(TestLibraries.testFxMonocle)
+    testImplementation(TestLibraries.hamcrest)
 }
 
 java {
