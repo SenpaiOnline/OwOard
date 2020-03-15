@@ -1,19 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val jnativehookVersion: String by project
-val tornadofxVersion: String by project
-val tilesfxVersion: String by project
-val vlcjVersion: String by project
-val fontawesomefxCommonVersion: String by project
-val fontawesomefxicons525Version: String by project
-val junitJupiterVersion: String by project
-val testfxCoreVersion: String by project
-val hamcrestVersion: String by project
-val openjfxMonocleVersion: String by project
-val kotlinLoggingVersion: String by project
-val logbackClassicVersion: String by project
-val jnaVersion: String by project
-
 plugins {
     application
     java
