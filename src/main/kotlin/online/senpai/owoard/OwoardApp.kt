@@ -25,7 +25,7 @@ import online.senpai.owoard.view.MainView
 import tornadofx.*
 import kotlin.system.exitProcess
 
-class OwoardApp: App(MainView::class) {
+class OwoardApp : App(MainView::class, Styles::class) {
     private val audioController: AudioController by inject()
     private val nativeHookController: NativeHookController by inject()
 
@@ -33,8 +33,8 @@ class OwoardApp: App(MainView::class) {
         audioController.initialize()
         nativeHookController.initialize()
         stage.setOnCloseRequest {
-            audioController.destroy()
-            nativeHookController.destroy()
+            audioController.terminate()
+            nativeHookController.terminate()
             Platform.exit()
             exitProcess(0)
         }

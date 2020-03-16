@@ -17,12 +17,15 @@
 
 package online.senpai.owoard.controller
 
+import com.toxicbakery.kfinstatemachine.StateMachine
 import javafx.application.Platform
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
-import javafx.scene.input.KeyCombination
 import mu.KLogger
 import mu.KotlinLogging
+import online.senpai.owoard.AbstractTransitionalCallback
+import online.senpai.owoard.KeyCombination
 import org.jnativehook.GlobalScreen
 import org.jnativehook.NativeHookException
 import org.jnativehook.NativeInputEvent
@@ -33,65 +36,140 @@ import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 import java.util.logging.Logger
+import javafx.scene.input.KeyCombination as FxKeyCombination
+import online.senpai.owoard.controller.NativeHookEvent as Event
+import online.senpai.owoard.controller.NativeHookState as State
 
 private val logger: KLogger = KotlinLogging.logger {}
 
 class NativeHookController : Controller() {
     private val keyEventDispatcher: KeyEventDispatcher by inject()
-    /*val consumeEventsProperty = SimpleBooleanProperty(this, "consumeEvents", false)
-    var consumeEvents by consumeEventsProperty*/
+    private val stateMachine: NativeHookStateMachine = NativeHookStateMachine()
+    private val nativeHookEventHandler: NativeHookEventHandler = NativeHookEventHandler()
+    val keyEventMustContainModifierProperty = SimpleBooleanProperty(true)
+    var keyEventMustContainModifier: Boolean by keyEventMustContainModifierProperty
 
     init {
         Logger.getLogger(GlobalScreen::class.java.`package`.name).apply {
             level = Level.OFF
             useParentHandlers = false
         }
+
+        stateMachine.registerCallback(object : AbstractTransitionalCallback<State, Event>(logger) {
+            override fun enteredState(
+                    stateMachine: StateMachine<State, Event>,
+                    previousState: State,
+                    transition: Event,
+                    currentState: State
+            ) {
+                when (transition) {
+                    is Event.Initialize -> onInitialize()
+                    is Event.Terminate -> onTerminate()
+                }
+            }
+        })
+    }
+
+    private fun onInitialize() {
+        GlobalScreen.registerNativeHook()
+        GlobalScreen.addNativeKeyListener(nativeHookEventHandler)
+        GlobalScreen.setEventDispatcher(EventDispatcher())
+    }
+
+    private fun onTerminate() {
+        GlobalScreen.removeNativeKeyListener(nativeHookEventHandler)
+        GlobalScreen.unregisterNativeHook()
     }
 
     @Throws(NativeHookException::class)
     fun initialize() {
-        GlobalScreen.registerNativeHook()
-        GlobalScreen.addNativeKeyListener(object : NativeKeyListener {
-            override fun nativeKeyTyped(nativeKeyEvent: NativeKeyEvent) {
-            }
-
-            override fun nativeKeyReleased(nativeKeyEvent: NativeKeyEvent) {
-            }
-
-            override fun nativeKeyPressed(nativeKeyEvent: NativeKeyEvent) {
-                val keyCombination: KeyCodeCombination = nativeKeyEvent.toFxKeyCombination()
-                logger.debug { "Native key: ${nativeKeyEvent.keyCode.toString(16)}, modifiers mask: ${nativeKeyEvent.modifiers}" }
-                logger.debug { "JavaFX key combination: ${keyCombination.displayText}" }
-                Platform.runLater {
-                    keyEventDispatcher.keyCombinationPressed(keyCombination)
-                }
-            }
-        })
-        GlobalScreen.setEventDispatcher(object : AbstractExecutorService() {
-            private var running = true
-
-            override fun shutdown() {
-                running = false
-            }
-
-            override fun shutdownNow(): List<Runnable> {
-                running = false
-                return arrayListOf()
-            }
-
-            override fun isShutdown(): Boolean = !running
-            override fun isTerminated(): Boolean = !running
-            override fun awaitTermination(amount: Long, units: TimeUnit): Boolean = true
-            override fun execute(action: Runnable): Unit = action.run()
-        })
+        stateMachine.transition(Event.Initialize)
     }
 
-    fun destroy() {
-        if (GlobalScreen.isNativeHookRegistered()) {
-            GlobalScreen.unregisterNativeHook()
+    fun terminate() {
+        stateMachine.transition(Event.Terminate)
+    }
+
+    private inner class NativeHookEventHandler : NativeKeyListener {
+        override fun nativeKeyTyped(nativeKeyEvent: NativeKeyEvent) {
+        }
+
+        override fun nativeKeyReleased(nativeKeyEvent: NativeKeyEvent) {
+        }
+
+        override fun nativeKeyPressed(nativeKeyEvent: NativeKeyEvent) {
+            if (keyEventMustContainModifier) {
+                if (nativeKeyEvent.modifiers == 0) return
+            }
+            when (nativeKeyEvent.keyCode) {
+                NativeKeyEvent.VC_CONTROL_L,
+                NativeKeyEvent.VC_CONTROL_R,
+                NativeKeyEvent.VC_SHIFT_L,
+                NativeKeyEvent.VC_SHIFT_R,
+                NativeKeyEvent.VC_ALT_L,
+                NativeKeyEvent.VC_ALT_R,
+                NativeKeyEvent.VC_META_L,
+                NativeKeyEvent.VC_META_R
+                -> return // Ignore the modifiers as an independent key
+            }
+            val keyCombination = KeyCombination(
+                    nativeKeyEvent.rawCode,
+                    nativeKeyEvent.keyCode,
+                    nativeKeyEvent.modifiers,
+                    nativeKeyEvent.keyLocation
+            )
+            logger.debug {
+                "Native key: ${nativeKeyEvent.keyCode.toString(16)}, modifiers mask: ${nativeKeyEvent.modifiers}"
+            }
+            logger.debug { keyCombination }
+            Platform.runLater {
+                keyEventDispatcher.keyCombinationPressed(keyCombination)
+            }
         }
     }
 }
+
+class EventDispatcher : AbstractExecutorService() {
+    private var running = true
+
+    override fun shutdown() {
+        running = false
+    }
+
+    override fun shutdownNow(): List<Runnable> {
+        running = false
+        return emptyList()
+    }
+
+    override fun isShutdown(): Boolean = !running
+    override fun isTerminated(): Boolean = !running
+    override fun awaitTermination(amount: Long, units: TimeUnit): Boolean = true
+    override fun execute(action: Runnable): Unit = action.run()
+}
+
+private enum class NativeHookState {
+    Terminated,
+    Initialized
+}
+
+private sealed class NativeHookEvent {
+    object Initialize : Event()
+    object Terminate : Event()
+}
+
+private class NativeHookStateMachine : StateMachine<State, Event>(
+        State.Terminated,
+        transition(
+                oldState = State.Terminated,
+                transition = Event.Initialize::class,
+                newState = State.Initialized
+        ),
+        transition(
+                oldState = State.Initialized,
+                transition = Event.Terminate::class,
+                newState = State.Terminated
+        )
+)
 
 fun NativeKeyEvent.toFxKeyCombination(): KeyCodeCombination {
     val keyCode: KeyCode = when (this.keyCode) {
@@ -211,10 +289,10 @@ fun NativeKeyEvent.toFxKeyCombination(): KeyCodeCombination {
         else -> KeyCode.UNDEFINED
     }
 
-    val modifiers: MutableList<KeyCombination.Modifier> = mutableListOf()
-    if ((this.modifiers and NativeInputEvent.SHIFT_MASK) != 0) modifiers.add(KeyCombination.SHIFT_DOWN)
-    if ((this.modifiers and NativeInputEvent.CTRL_MASK) != 0) modifiers.add(KeyCombination.CONTROL_DOWN)
-    if ((this.modifiers and NativeInputEvent.ALT_MASK) != 0) modifiers.add(KeyCombination.ALT_DOWN)
-    if ((this.modifiers and NativeInputEvent.META_MASK) != 0) modifiers.add(KeyCombination.META_DOWN)
+    val modifiers: MutableList<FxKeyCombination.Modifier> = mutableListOf()
+    if ((this.modifiers and NativeInputEvent.SHIFT_MASK) != 0) modifiers.add(FxKeyCombination.SHIFT_DOWN)
+    if ((this.modifiers and NativeInputEvent.CTRL_MASK) != 0) modifiers.add(FxKeyCombination.CONTROL_DOWN)
+    if ((this.modifiers and NativeInputEvent.ALT_MASK) != 0) modifiers.add(FxKeyCombination.ALT_DOWN)
+    if ((this.modifiers and NativeInputEvent.META_MASK) != 0) modifiers.add(FxKeyCombination.META_DOWN)
     return KeyCodeCombination(keyCode, *modifiers.toTypedArray())
 }
