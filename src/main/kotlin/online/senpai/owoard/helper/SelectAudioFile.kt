@@ -15,8 +15,35 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package online.senpai.owoard
+package online.senpai.owoard.helper
 
-interface KeyEventSubscriber {
-    fun handleKeyEvent()
+import javafx.stage.FileChooser
+import tornadofx.*
+import java.io.File
+
+val ALLOWED_AUDIO_EXT: List<String> = listOf(
+        "*.acc",
+        "*.aiff",
+        "*.alac",
+        "*.flac",
+        "*.m4a",
+        "*.mp3",
+        "*.mogg",
+        "*.oga",
+        "*.ogg",
+        "*.wav",
+        "*.webm"
+)
+
+fun selectAudioFile(): File? {
+    return chooseFile(
+            mode = FileChooserMode.Single,
+            filters = arrayOf(
+                    FileChooser.ExtensionFilter(
+                            "Audio File",
+                            ALLOWED_AUDIO_EXT
+                    )
+            )
+    )
+            .firstOrNull()
 }

@@ -20,6 +20,7 @@ package online.senpai.owoard.view
 import eu.hansolo.tilesfx.Tile
 import eu.hansolo.tilesfx.tools.FlowGridPane
 import javafx.beans.property.SimpleDoubleProperty
+import javafx.collections.ObservableList
 import javafx.geometry.HPos
 import javafx.geometry.Insets
 import javafx.scene.Node
@@ -27,59 +28,44 @@ import javafx.scene.layout.Background
 import javafx.scene.layout.BackgroundFill
 import javafx.scene.layout.CornerRadii
 import javafx.stage.FileChooser
-import online.senpai.owoard.controller.TileFactory
-import online.senpai.owoard.model.AudioObjectModel
+import mu.KLogger
+import mu.KotlinLogging
+import online.senpai.owoard.controller.AudioController
 import tornadofx.*
 import java.io.File
 import javax.json.Json
-import javax.json.JsonArray
-import javax.json.JsonWriter
+import javax.json.stream.JsonParser
 
-typealias ColumnAndRowIndex = Pair<Int, Int>
+private val logger: KLogger = KotlinLogging.logger {}
 
 class GridPaneView(tileSize: Double = 150.0) : View("My View") {
-    private val tileFactory: TileFactory by inject()
-    private val alignment: HPos = HPos.CENTER
+    private val audioController: AudioController by inject()
+    val numberOfColumns: Int get() = root.noOfCols
+    val numberOfRows: Int get() = root.noOfRows
+    val nodes: ObservableList<Node> get() = root.children
     val tileSizeProperty = SimpleDoubleProperty(this, "tileSize", tileSize)
     var tileSize by tileSizeProperty
 
-    override val root = FlowGridPane(0, 0).apply {
+    override val root: FlowGridPane = FlowGridPane(0, 0).apply {
         hgap = 5.0
         vgap = 5.0
         paddingAll = 5
         background = Background(BackgroundFill(Tile.BACKGROUND.darker(), CornerRadii.EMPTY, Insets.EMPTY))
     }
 
-    fun initGridPane(cols: Int, rows: Int) {
-        if (root.noOfCols > 0 || root.noOfRows > 0) {
-            // TODO Ask
-            clearGrid()
-        }
-        changeGridPaneSizeTo(cols, rows)
-        for (i: Int in 0 until cols) {
-            for (j: Int in 0 until rows) {
-//                val tile: Tile = tileFactory.createEmptyNode()
-//                val tile = AudioTile()
-                val model = AudioObjectModel("TestObj", "/home/maxim/Documents/VerminData/extraction/File0057.ogg")
-                val tile: AudioTile = find(mapOf("model" to model))
-                /*tile.apply {
-                    prefWidthProperty().bind(tileSize)
-                    prefHeightProperty().bind(tileSize)
-                    maxWidthProperty().bind(tileSize)
-                    maxHeightProperty().bind(tileSize)
-                }*/
-                FlowGridPane.setHalignment(tile.root, alignment)
-                FlowGridPane.setConstraints(tile.root, i, j)
-                root.add(tile)
-            }
-        }
-        /*for (i in 0 until rows) {
-            root.addColumn(i, *Array(cols) { tileFactory.createEmptyNode() })
-        }*/
-    }
+    fun addNode(node: Node, col: Int, row: Int): Unit = root.add(node, col, row)
 
-    @Throws(IllegalArgumentException::class)
-    fun changeGridPaneSizeTo(cols: Int, rows: Int) {
+    fun setHalignment(node: Node, haligment: HPos): Unit = FlowGridPane.setHalignment(node, haligment)
+
+    fun getNodeColumnIndex(node: Node): Int = FlowGridPane.getColumnIndex(node)
+
+    fun getNodeRowIndex(node: Node): Int = FlowGridPane.getRowIndex(node)
+
+    fun setNodeColumnIndex(node: Node, index: Int): Unit = FlowGridPane.setColumnIndex(node, index)
+
+    fun setNodeRowIndex(node: Node, index: Int): Unit = FlowGridPane.setRowIndex(node, index)
+
+    fun setGridPaneSize(cols: Int, rows: Int) {
         require(cols > 0 && rows > 0)
         root.setNoOfColsAndNoOfRows(cols, rows)
     }
@@ -88,46 +74,33 @@ class GridPaneView(tileSize: Double = 150.0) : View("My View") {
         root.clear()
     }
 
-    private fun getNodePosition(node: Node): ColumnAndRowIndex {
-        return FlowGridPane.getColumnIndex(node) to FlowGridPane.getRowIndex(node)
-    }
-
-    fun saveNodes() {
+    fun loadTiles() {
         val file: File = chooseFile(
                 title = "Save as...",
-                mode = FileChooserMode.Save,
-                filters = arrayOf(FileChooser.ExtensionFilter("Json files", "*.json"))
-        ).firstOrNull() ?: return
-        runAsync {
-            val jsonArray: JsonArray = Json.createArrayBuilder().apply {
-                root.children.forEach { tile: Node ->
-                    add(Json.createObjectBuilder().apply {
-                        val position: ColumnAndRowIndex = getNodePosition(tile)
-                        add("col", position.first)
-                        add("row", position.second)
-                        val userData: Any? = tile.userData
-                        add("soundObject", when (userData) {
-                            is AudioObjectModel -> userData.toJSON()
-                            else -> Json.createObjectBuilder().build()
-                        })
-                    })
-                }
-            }.build()
-            val jsonObject = Json.createObjectBuilder().apply {
-                add("cols", root.noOfCols)
-                add("rows", root.noOfRows)
-                add("tileSize", tileSize)
-                add("tiles", jsonArray)
-            }.build()
-            val jsonWriter: JsonWriter = Json.createWriter(file.outputStream())
-            jsonWriter.writeObject(jsonObject)
-            jsonWriter.close() //  TODO
-        }
+                mode = FileChooserMode.Single,
+                filters = arrayOf(FileChooser.ExtensionFilter("Owoard files", "*.owo"))
+        )
+                .firstOrNull() ?: return
+        val parser: JsonParser = Json.createParser(file.inputStream())
+//        parser.`object`.
     }
 
-    fun replaceNodeWith(node: Node, col: Int, row: Int) {
-    }
+    /*fun swapNodes(n1: Tile, n2: Tile) {
+        val n1Clone = n1.clone()
+        var temp: Int = getNodeRowIndex(n1)
+        setNodeRowIndex(n1, getNodeRowIndex(n2))
+        setNodeRowIndex(n2, temp)
 
-    fun addItem(item: AudioObjectModel) {
+        temp = getNodeColumnIndex(n1)
+        setNodeColumnIndex(n1, getNodeColumnIndex(n2))
+        setNodeColumnIndex(n2, temp)
+    }*/
+
+    fun replaceNode(n1: Node, n2: Node) {
+        val col = getNodeColumnIndex(n1)
+        val row = getNodeRowIndex(n1)
+        n1.replaceWith(n2, ViewTransition.Metro(0.5.seconds))
+        setNodeColumnIndex(n1, col)
+        setNodeRowIndex(n1, row)
     }
 }

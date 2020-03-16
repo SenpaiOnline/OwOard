@@ -38,7 +38,7 @@ class LinBiolinumKView(
     companion object {
         init {
             try {
-                loadFont("font/LinBiolinum_Kah.ttf", 10.0)
+                loadFont("/LinBiolinum_Kah.ttf", 10.0)
             } catch (ex: IOException) {
                 throw IllegalStateException("Unable to load font LinBiolinum")
             }

@@ -17,46 +17,107 @@
 
 package online.senpai.owoard.controller
 
-import javafx.beans.Observable
-import javafx.beans.property.SimpleBooleanProperty
+import com.toxicbakery.kfinstatemachine.StateMachine
+import javafx.beans.property.ReadOnlyMapProperty
+import javafx.beans.property.ReadOnlyMapWrapper
+import javafx.beans.property.ReadOnlyObjectProperty
+import javafx.beans.property.ReadOnlyObjectWrapper
 import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
-import javafx.collections.ObservableList
-import javafx.collections.ObservableMap
-import javafx.scene.input.KeyCodeCombination
+import mu.KLogger
+import mu.KotlinLogging
+import online.senpai.owoard.AbstractTransitionalCallback
+import online.senpai.owoard.KeyCombination
 import online.senpai.owoard.KeyEventSubscriber
-import online.senpai.owoard.KeyEventType
 import tornadofx.*
+import online.senpai.owoard.controller.KeyDispatcherEvent as Event
+import online.senpai.owoard.controller.KeyDispatcherState as State
+
+private val logger: KLogger = KotlinLogging.logger {}
 
 class KeyEventDispatcher : Controller() {
-    val subscribersToSpecificHotkey: ObservableMap<KeyCodeCombination, KeyEventSubscriber> = FXCollections.observableHashMap()
-    val recordLastPressedKeyCombinationProperty = SimpleBooleanProperty(false)
-    var recordLastPressedKeyCombination: Boolean by recordLastPressedKeyCombinationProperty
-    val lastPressedKeyCombinationProperty = SimpleObjectProperty<KeyCodeCombination>()
-    var lastPressedKeyCombination: KeyCodeCombination? by lastPressedKeyCombinationProperty
+    private val _subscribersToSpecificHotkey: ReadOnlyMapWrapper<KeyCombination, KeyEventSubscriber> =
+            ReadOnlyMapWrapper(FXCollections.observableHashMap<KeyCombination, KeyEventSubscriber>())
+    private val _lastPressedKeyCombinationProperty: ReadOnlyObjectWrapper<SimpleObjectProperty<KeyCombination>> =
+            ReadOnlyObjectWrapper(SimpleObjectProperty())
+    private val stateMachine: KeyDispatcherStateMachine = KeyDispatcherStateMachine()
+    private var _lastPressedKeyCombination: KeyCombination? by _lastPressedKeyCombinationProperty.get()
+    val subscribersToSpecificHotkey: ReadOnlyMapProperty<KeyCombination, KeyEventSubscriber> =
+            _subscribersToSpecificHotkey.readOnlyProperty
+    val lastPressedKeyCombination: ReadOnlyObjectProperty<SimpleObjectProperty<KeyCombination>> =
+            _lastPressedKeyCombinationProperty.readOnlyProperty
 
     init {
-        recordLastPressedKeyCombinationProperty.addListener { _: Observable, oldValue: Boolean, newValue: Boolean ->
-            if (oldValue && !newValue) {
-                lastPressedKeyCombination = null
+        stateMachine.registerCallback(object : AbstractTransitionalCallback<State, Event>(logger) {
+            override fun enteredState(
+                    stateMachine: StateMachine<State, Event>,
+                    previousState: State,
+                    transition: Event,
+                    currentState: State
+            ) {
+                when (transition) {
+                    is Event.SwitchToNormalMode -> onNormalMode()
+                    is Event.SwitchToAwaitMode -> onAwaitMode()
+                }
             }
-        }
+        })
+    }
+
+    private fun onNormalMode() {
+        _lastPressedKeyCombination = null
+    }
+
+    private fun onAwaitMode() {
+    }
+
+    fun normalMode() {
+        stateMachine.transition(Event.SwitchToNormalMode)
+    }
+
+    fun awaitNewHotkey() {
+        stateMachine.transition(Event.SwitchToAwaitMode)
     }
 
     @Throws(IllegalArgumentException::class)
-    fun subscribeToSpecificHotkey(keyCodeCombination: KeyCodeCombination, subscriber: KeyEventSubscriber) {
-        require(!subscribersToSpecificHotkey.contains(keyCodeCombination)) { "Hotkey is already in use!" }
-        subscribersToSpecificHotkey[keyCodeCombination] = subscriber
+    fun registerSubscriberByHotkey(keyCombination: KeyCombination, subscriber: KeyEventSubscriber) {
+        require(!_subscribersToSpecificHotkey.contains(keyCombination)) { "Hotkey is already in use!" }
+        logger.debug { "New subscriber: ${keyCombination.keyName}, ${keyCombination.modifiers}" }
+        _subscribersToSpecificHotkey[keyCombination] = subscriber
     }
 
-    fun removeSubscriberByHotkey(keyCodeCombination: KeyCodeCombination) {
-        subscribersToSpecificHotkey.remove(keyCodeCombination)
+    fun removeSubscriberByHotkey(keyCombination: KeyCombination) {
+        logger.debug { "Removing the subscriber with hotkey ${keyCombination.keyName}, ${keyCombination.modifiers}" }
+        _subscribersToSpecificHotkey.remove(keyCombination)
     }
 
-    fun keyCombinationPressed(keyCombination: KeyCodeCombination) {
-        subscribersToSpecificHotkey[keyCombination]?.handleKeyEvent(KeyEventType.PLAY) // TODO stop
-        if (recordLastPressedKeyCombination) {
-            lastPressedKeyCombination = keyCombination
+    fun keyCombinationPressed(keyCombination: KeyCombination) {
+        when (stateMachine.state) {
+            State.NormalMode -> _subscribersToSpecificHotkey[keyCombination]?.handleKeyEvent()
+            State.AwaitMode -> _lastPressedKeyCombination = keyCombination
         }
     }
 }
+
+private enum class KeyDispatcherState {
+    NormalMode,
+    AwaitMode
+}
+
+private sealed class KeyDispatcherEvent {
+    object SwitchToNormalMode : Event()
+    object SwitchToAwaitMode : Event()
+}
+
+private class KeyDispatcherStateMachine : StateMachine<State, Event>(
+        State.NormalMode,
+        transition(
+                oldState = State.NormalMode,
+                newState = State.AwaitMode,
+                transition = Event.SwitchToAwaitMode::class
+        ),
+        transition(
+                oldState = State.AwaitMode,
+                newState = State.NormalMode,
+                transition = Event.SwitchToNormalMode::class
+        )
+)

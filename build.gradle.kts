@@ -10,6 +10,7 @@ plugins {
 
 application {
     mainClassName = "online.senpai.owoard.OwoardApp"
+    applicationDefaultJvmArgs = listOf("-DVLCJ_INITX=no") // TODO Does it affect Windows?
 }
 
 group = "online.senpai"

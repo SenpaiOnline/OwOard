@@ -1,6 +1,6 @@
 /*
  * This file is part of the OwOard distribution (https://github.com/aiscy/OwOard).
- * Copyright (c) 2019 Maxim Valeryevich Pavlov.
+ * Copyright (c) 2020 Maxim Valeryevich Pavlov.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
 
 package online.senpai.owoard
 
-enum class KeyEventType {
-    PLAY, STOP
+interface Playable {
+    val source: String
+    fun playing()
+    fun stopped()
 }

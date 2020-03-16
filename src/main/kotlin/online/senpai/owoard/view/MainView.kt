@@ -17,47 +17,46 @@
 
 package online.senpai.owoard.view
 
-import javafx.event.Event
-import javafx.scene.control.ScrollPane
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
+import online.senpai.owoard.controller.GridController
+import online.senpai.owoard.controller.StateController
+import online.senpai.owoard.model.AudioSettingsModel
 import tornadofx.*
 
-class MainView : View("Yet Another Soundboard? Please Stop!") {
-    val gridPaneView: GridPaneView by inject()
-    var scrollpane: ScrollPane by singleAssign()
+class MainView : View("OwOard") {
+    /*private val audioSettingsEditorView: AudioSettingsEditorView by inject()*/
+    private val gridPaneView: GridPaneView by inject()
+    private val gridController: GridController by inject()
+    private val stateController: StateController by inject()
+    private val audioModel = AudioSettingsModel()
+
     override val root = borderpane {
-        setPrefSize(600.0, 800.0)
+        setPrefSize(600.0, 800.0) // TODO
         top {
             vbox {
                 menubar {
                     menu("File") {
-                        item("Create new").action { gridPaneView.initGridPane(12, 6) }
-                        item("Save")
+                        item("Create new...").action { gridController.initGridPaneWithEmptyTiles(12, 10) }
+                        item("Save...").action { stateController.save() }
+                        item("Load...").action { stateController.load() }
                         separator()
                         item("Quit")
                     }
-                    menu("Create") {
-                        item("Add handler").action {
-                            primaryStage.scene.addEventHandler(KeyEvent.KEY_PRESSED) {
-                                println("Scene handler -> $it")
-                            }
-                        }
-                        item("Dump").action { gridPaneView.saveNodes() }
-                        item("Test").action {
-                            val ke = KeyEvent(KeyEvent.KEY_PRESSED,
-                                    "", "",
-                                    KeyCode.P, false, false, true, false)
-                            Event.fireEvent(this@borderpane, ke)
-                        }
+                    menu("Settings") {
+                        item("Audio settings...").action { openSettingsEditor() }
                     }
                 }
             }
         }
         center {
-            scrollpane = scrollpane(fitToWidth = true, fitToHeight = true) {
+            scrollpane(fitToWidth = true, fitToHeight = true) {
                 add(gridPaneView)
             }
         }
+    }
+
+    private fun openSettingsEditor() {
+        val editorScope = Scope()
+        setInScope(audioModel, editorScope)
+        find(AudioSettingsEditorView::class, editorScope).openWindow()
     }
 }
