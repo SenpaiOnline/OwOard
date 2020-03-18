@@ -33,6 +33,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           prerelease: true
+          tag_name: ${{ github.ref }}
+          release_name: Snapshot ${{ github.ref }}
 
       - name: Upload snapshot asset
         id: upload-release-asset
