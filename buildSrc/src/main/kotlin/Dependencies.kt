@@ -1,3 +1,5 @@
+const val kotlinVersion = "1.3.70"
+
 object Libraries {
     private object Versions {
         const val jnativehook = "2.0.2"

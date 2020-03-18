@@ -1,9 +1,10 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
     java
-    kotlin("jvm") version "1.3.70"
+    kotlin("jvm") version kotlinVersion
     id("com.github.johnrengelman.shadow") version "5.2.0"
     id("com.github.ben-manes.versions") version "0.28.0"
 }
@@ -45,6 +46,12 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+kotlin.sourceSets["main"].kotlin.srcDirs("src/main/kotlin")
+kotlin.sourceSets["test"].kotlin.srcDirs("src/test/kotlin")
+
+sourceSets["main"].resources.srcDirs("src/main/resources")
+sourceSets["test"].resources.srcDirs("src/test/resources")
+
 tasks.test {
     useJUnitPlatform()
     testLogging {
@@ -58,12 +65,6 @@ tasks.withType<KotlinCompile>().all {
     }
 }
 
-kotlin.sourceSets["main"].kotlin.srcDirs("src/main/kotlin")
-kotlin.sourceSets["test"].kotlin.srcDirs("src/test/kotlin")
-
-sourceSets["main"].resources.srcDirs("src/main/resources")
-sourceSets["test"].resources.srcDirs("src/test/resources")
-
 tasks.register<JavaExec>("fontTest") {
     group = "playground"
     main = "online.senpai.owoard.playground.FontTest"
@@ -74,4 +75,8 @@ tasks.register<JavaExec>("jNativeHook") {
     group = "playground"
     main = "online.senpai.owoard.playground.JNativeHookKt"
     classpath = sourceSets.test.get().runtimeClasspath
+}
+
+tasks.withType<ShadowJar> {
+    exclude("icon.png") // the unused icon from Tornadofx
 }
