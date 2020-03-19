@@ -7,6 +7,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     id("com.github.johnrengelman.shadow") version "5.2.0"
     id("com.github.ben-manes.versions") version "0.28.0"
+    id("io.gitlab.arturbosch.detekt") version "1.6.0"
 }
 
 application {
@@ -20,6 +21,11 @@ repositories {
     mavenCentral()
     maven { url = uri("https://dl.bintray.com/jerady/maven") }
     maven { url = uri("https://jitpack.io") }
+    jcenter {
+        content {
+            includeGroup("org.jetbrains.kotlinx") // detekt needs 'kotlinx-html' for the html report
+        }
+    }
 }
 
 dependencies {
@@ -51,6 +57,15 @@ kotlin.sourceSets["test"].kotlin.srcDirs("src/test/kotlin")
 
 sourceSets["main"].resources.srcDirs("src/main/resources")
 sourceSets["test"].resources.srcDirs("src/test/resources")
+
+detekt {
+    reports {
+        html {
+            enabled = true
+            destination = file("build/reports/detekt.html")
+        }
+    }
+}
 
 tasks.test {
     useJUnitPlatform()
