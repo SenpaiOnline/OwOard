@@ -34,7 +34,7 @@ jobs:
         with:
           prerelease: true
           tag_name: ${{ github.ref }}
-          release_name: Snapshot ${{ github.ref }}
+          release_name: Snapshot of ${{ github.sha }}
 
       - name: Upload snapshot asset
         id: upload-release-asset
