@@ -33,13 +33,14 @@ object Libraries {
 object TestLibraries {
     private object Versions {
         const val junitJupiter = "5.6.0"
-        const val testfxCore = "4.0.16-alpha"
+        const val testfx = "4.0.16-alpha"
         const val hamcrest = "2.2"
         const val openjfxMonocle = "8u76-b04"
     }
 
     const val junitJupiter = "org.junit.jupiter:junit-jupiter:${Versions.junitJupiter}"
-    const val testFxCore = "org.testfx:testfx-core:${Versions.testfxCore}"
+    const val testFxCore = "org.testfx:testfx-core:${Versions.testfx}"
+    const val testFxJunit5 = "org.testfx:testfx-junit5:${Versions.testfx}"
     const val testFxMonocle = "org.testfx:openjfx-monocle:${Versions.openjfxMonocle}"
     const val hamcrest = "org.hamcrest:hamcrest:${Versions.hamcrest}"
 }

@@ -43,6 +43,7 @@ dependencies {
 
     testImplementation(TestLibraries.junitJupiter)
     testImplementation(TestLibraries.testFxCore)
+    testImplementation(TestLibraries.testFxJunit5)
     testImplementation(TestLibraries.testFxMonocle)
     testImplementation(TestLibraries.hamcrest)
 }
@@ -59,6 +60,7 @@ sourceSets["main"].resources.srcDirs("src/main/resources")
 sourceSets["test"].resources.srcDirs("src/test/resources")
 
 detekt {
+    config = files("detekt.yml")
     reports {
         html {
             enabled = true
