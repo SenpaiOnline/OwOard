@@ -46,6 +46,7 @@ dependencies {
     testImplementation(TestLibraries.testFxJunit5)
     testImplementation(TestLibraries.testFxMonocle)
     testImplementation(TestLibraries.hamcrest)
+    testImplementation(TestLibraries.mockk)
 }
 
 java {

@@ -36,6 +36,7 @@ object TestLibraries {
         const val testfx = "4.0.16-alpha"
         const val hamcrest = "2.2"
         const val openjfxMonocle = "8u76-b04"
+        const val mockk = "1.9.3"
     }
 
     const val junitJupiter = "org.junit.jupiter:junit-jupiter:${Versions.junitJupiter}"
@@ -43,4 +44,5 @@ object TestLibraries {
     const val testFxJunit5 = "org.testfx:testfx-junit5:${Versions.testfx}"
     const val testFxMonocle = "org.testfx:openjfx-monocle:${Versions.openjfxMonocle}"
     const val hamcrest = "org.hamcrest:hamcrest:${Versions.hamcrest}"
+    const val mockk = "io.mockk:mockk:${Versions.mockk}"
 }
