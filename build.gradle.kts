@@ -95,6 +95,12 @@ tasks.register<JavaExec>("jNativeHook") {
     classpath = sourceSets.test.get().runtimeClasspath
 }
 
+tasks.register<JavaExec>("vlcjTestApp") {
+    group = "playground"
+    main = "online.senpai.owoard.playground.VlcjTestApp"
+    classpath = sourceSets.test.get().runtimeClasspath
+}
+
 tasks.withType<ShadowJar> {
     exclude("icon.png") // the unused icon from Tornadofx
 }
