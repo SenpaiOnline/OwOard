@@ -30,6 +30,7 @@ class OwoardApp : App(MainView::class, Styles::class) {
     private val nativeHookController: NativeHookController by inject()
 
     override fun start(stage: Stage) {
+        stage.icons += resources.image("/images/logo_512.png")
         audioController.initialize()
         nativeHookController.initialize()
         stage.setOnCloseRequest {
