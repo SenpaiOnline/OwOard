@@ -8,19 +8,18 @@ plugins {
     id("com.github.johnrengelman.shadow") version "5.2.0"
     id("com.github.ben-manes.versions") version "0.28.0"
     id("io.gitlab.arturbosch.detekt") version "1.6.0"
+    id("org.openjfx.javafxplugin") version "0.0.8"
 }
 
 application {
     mainClassName = "online.senpai.owoard.OwoardApp"
-    applicationDefaultJvmArgs = listOf("-DVLCJ_INITX=no") // TODO Does it affect Windows?
 }
-
-group = "online.senpai"
 
 repositories {
     mavenCentral()
     maven { url = uri("https://dl.bintray.com/jerady/maven") }
     maven { url = uri("https://jitpack.io") }
+    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots/") }
     jcenter {
         content {
             includeGroup("org.jetbrains.kotlinx") // detekt needs 'kotlinx-html' for the html report
@@ -50,8 +49,18 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+tasks.withType<KotlinCompile>().all {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+
+javafx {
+    version = "11"
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main/kotlin")
@@ -74,12 +83,6 @@ tasks.test {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
-    }
-}
-
-tasks.withType<KotlinCompile>().all {
-    kotlinOptions {
-        jvmTarget = "1.8"
     }
 }
 

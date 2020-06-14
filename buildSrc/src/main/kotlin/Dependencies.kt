@@ -1,9 +1,9 @@
-const val kotlinVersion = "1.3.70"
+const val kotlinVersion = "1.3.72"
 
 object Libraries {
     private object Versions {
         const val jnativehook = "2.0.2"
-        const val vlcj = "4.4.0"
+        const val vlcj = "4.5.2"
         const val kotlinLogging = "1.7.8"
         const val logbackClassic = "1.2.3"
         const val kfinStateMachine = "4.3.50"
@@ -17,7 +17,7 @@ object Libraries {
 
     object Fx {
         private object Versions {
-            const val tornadofx = "1.7.20"
+            const val tornadofx = "2.0.0-SNAPSHOT"
             const val tilesfx = "1.6.8"
             const val fontawesomefxCommon = "8.15"
             const val fontawesomefxIcons525 = "3.0.0-4"
