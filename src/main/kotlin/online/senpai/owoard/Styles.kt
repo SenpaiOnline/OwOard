@@ -15,9 +15,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package online.senpai.owoard.event
+package online.senpai.owoard
 
-import javafx.scene.input.KeyEvent
 import tornadofx.*
 
-class FireHotkeyEvent(val event: KeyEvent) : FXEvent()
+class Styles : Stylesheet() {
+    companion object {
+        val gridTile: CssRule by cssclass()
+        val idle: CssRule by csspseudoclass()
+    }
+
+    init {
+        gridTile {
+            borderWidth += box(15.px)
+        }
+        gridTile and idle {
+            /*borderColor += box(Color.ORANGE)*/
+        }
+    }
+}
