@@ -63,11 +63,16 @@ javafx {
     version = "11"
 }
 
-kotlin.sourceSets["main"].kotlin.srcDirs("src/main/kotlin")
-kotlin.sourceSets["test"].kotlin.srcDirs("src/test/kotlin")
-
-sourceSets["main"].resources.srcDirs("src/main/resources")
-sourceSets["test"].resources.srcDirs("src/test/resources")
+sourceSets {
+    main {
+        java.srcDirs("src/main/kotlin", "src/main/java")
+        resources.srcDirs("src/main/resources")
+    }
+    test {
+        java.srcDirs("src/test/kotlin")
+        resources.srcDirs("src/test/resources")
+    }
+}
 
 detekt {
     config = files("detekt.yml")
