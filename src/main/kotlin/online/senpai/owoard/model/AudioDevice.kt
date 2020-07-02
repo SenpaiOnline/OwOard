@@ -21,31 +21,35 @@ import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
 import javax.json.JsonObject
 
+private const val INTERFACE_NAME = "interfaceName"
+private const val DEVICE_ID = "deviceId"
+private const val DEVICE_DESCRIPTION = "deviceDescription"
+
 class AudioDevice(
         interfaceName: String,
         deviceId: String,
         deviceDescription: String
 ) : JsonModel {
-    val interfaceNameProperty = SimpleStringProperty(this, "interfaceName", interfaceName)
+    val interfaceNameProperty = SimpleStringProperty(this, INTERFACE_NAME, interfaceName)
     var interfaceName: String by interfaceNameProperty
-    val deviceIdProperty = SimpleStringProperty(this, "deviceId", deviceId)
+    val deviceIdProperty = SimpleStringProperty(this, DEVICE_ID, deviceId)
     var deviceId: String by deviceIdProperty
-    val deviceDescriptionProperty = SimpleStringProperty(this, "deviceDescription", deviceDescription)
+    val deviceDescriptionProperty = SimpleStringProperty(this, DEVICE_DESCRIPTION, deviceDescription)
     var deviceDescription: String by deviceDescriptionProperty
 
     override fun toJSON(json: JsonBuilder) {
         with(json) {
-            add("interfaceName", interfaceName)
-            add("deviceId", deviceId)
-            add("deviceDescription", deviceDescription)
+            add(INTERFACE_NAME, interfaceName)
+            add(DEVICE_ID, deviceId)
+            add(DEVICE_DESCRIPTION, deviceDescription)
         }
     }
 
     override fun updateModel(json: JsonObject) {
         with(json) {
-            interfaceName = getString("interfaceName")
-            deviceId = getString("deviceId")
-            deviceDescription = getString("deviceDescription")
+            interfaceName = getString(INTERFACE_NAME)
+            deviceId = getString(DEVICE_ID)
+            deviceDescription = getString(DEVICE_DESCRIPTION)
         }
     }
 
@@ -57,9 +61,9 @@ class AudioDevice(
         fun fromJson(json: JsonObject): AudioDevice {
             return with(json) {
                 AudioDevice(
-                        interfaceName = getString("interfaceName"),
-                        deviceId = getString("deviceId"),
-                        deviceDescription = getString("deviceDescription")
+                        interfaceName = getString(INTERFACE_NAME),
+                        deviceId = getString(DEVICE_ID),
+                        deviceDescription = getString(DEVICE_DESCRIPTION)
                 )
             }
         }
