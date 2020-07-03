@@ -24,26 +24,29 @@ import online.senpai.owoard.controller.AudioController
 import tornadofx.*
 import javax.json.JsonObject
 
+private const val AUDIO_DEVICE = "audioDevice"
+private const val MASTER_VOLUME = "masterVolume"
+
 class AudioSettings(
         audioDevice: AudioDevice? = null,
         masterVolume: Int = 100
 ) : JsonModel {
-    val audioDeviceProperty = SimpleObjectProperty<AudioDevice>(this, "audioDevice", audioDevice)
+    val audioDeviceProperty = SimpleObjectProperty<AudioDevice>(this, AUDIO_DEVICE, audioDevice)
     var audioDevice: AudioDevice? by audioDeviceProperty
-    val masterVolumeProperty = SimpleIntegerProperty(this, "masterVolume", masterVolume)
+    val masterVolumeProperty = SimpleIntegerProperty(this, MASTER_VOLUME, masterVolume)
     var masterVolume: Int by masterVolumeProperty
 
     override fun toJSON(json: JsonBuilder) {
         with(json) {
-            add("currentAudioDevice", audioDevice)
-            add("masterVolume", masterVolume)
+            add(AUDIO_DEVICE, audioDevice)
+            add(MASTER_VOLUME, masterVolume)
         }
     }
 
     override fun updateModel(json: JsonObject) {
         with(json) {
             audioDevice = AudioDevice.fromJson(this)
-            masterVolume = int("masterVolume") ?: 100
+            masterVolume = int(MASTER_VOLUME) ?: 100
         }
     }
 }
