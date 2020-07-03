@@ -17,6 +17,7 @@
 
 package online.senpai.owoard.model
 
+import javafx.beans.property.Property
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
 import javax.json.JsonObject
@@ -68,4 +69,10 @@ class AudioDevice(
             }
         }
     }
+}
+
+class AudioDeviceModel : ItemViewModel<AudioDevice>() {
+    val interfaceName: Property<String> = bind(AudioDevice::interfaceNameProperty)
+    val deviceId: Property<String> = bind(AudioDevice::deviceIdProperty)
+    val deviceDescription: Property<String> = bind(AudioDevice::deviceDescriptionProperty)
 }
