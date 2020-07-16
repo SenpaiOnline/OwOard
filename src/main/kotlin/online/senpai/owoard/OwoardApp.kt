@@ -19,22 +19,22 @@ package online.senpai.owoard
 
 import javafx.application.Platform
 import javafx.stage.Stage
-import online.senpai.owoard.controller.AudioController
+import online.senpai.owoard.controller.LibvlcController
 import online.senpai.owoard.controller.NativeHookController
 import online.senpai.owoard.view.MainView
 import tornadofx.*
 import kotlin.system.exitProcess
 
 class OwoardApp : App(MainView::class, Styles::class) {
-    private val audioController: AudioController by inject()
+    private val libvlcController: LibvlcController by inject()
     private val nativeHookController: NativeHookController by inject()
 
     override fun start(stage: Stage) {
         stage.icons += resources.image("/images/logo_512.png")
-        audioController.initialize()
+        libvlcController.initialize()
         nativeHookController.initialize()
         stage.setOnCloseRequest {
-            audioController.terminate()
+            libvlcController.terminate()
             nativeHookController.terminate()
             Platform.exit()
             exitProcess(0)

@@ -17,12 +17,17 @@
 
 package online.senpai.owoard.view
 
-import online.senpai.owoard.controller.AudioController
+import javafx.beans.binding.Bindings
+import javafx.beans.property.StringProperty
+import javafx.collections.FXCollections
+import javafx.collections.ObservableList
+import online.senpai.owoard.controller.LibvlcController
+import online.senpai.owoard.model.AudioDevice
 import online.senpai.owoard.model.AudioSettingsModel
 import tornadofx.*
 
 class AudioSettingsEditorView : View("Audio Settings") {
-    private val audioController: AudioController by inject(FX.defaultScope)
+    private val libvlcController: LibvlcController by inject(FX.defaultScope)
     private val model: AudioSettingsModel by inject()
 
     override val root: Form = form {

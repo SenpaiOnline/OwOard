@@ -30,7 +30,6 @@ import javafx.scene.layout.Background
 import javafx.scene.layout.BackgroundFill
 import javafx.scene.layout.CornerRadii
 import javafx.scene.paint.Color
-import javafx.stage.StageStyle
 import mu.KLogger
 import mu.KotlinLogging
 import online.senpai.owoard.Jsonable
@@ -202,7 +201,7 @@ class AudioGridTile : GridTile(), KeyEventSubscriber, Playable {
 
     private fun play() {
         if (model.path.value != null) {
-            audioController.play(this, model.volume.value.toInt())
+            audioController.play(model.path.value.toString(), model.volume.value.toInt())
         }
     }
 
