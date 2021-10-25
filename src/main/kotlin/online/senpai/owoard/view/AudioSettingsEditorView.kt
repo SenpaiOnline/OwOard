@@ -29,45 +29,66 @@ import tornadofx.*
 class AudioSettingsEditorView : View("Audio Settings") {
     private val libvlcController: LibvlcController by inject(FX.defaultScope)
     private val model: AudioSettingsModel by inject()
+    private val outputDevices: ObservableList<AudioDevice> = FXCollections.observableArrayList<AudioDevice>()
+
+    init {
+        model.audioInterface.onChange {
+            it?.let {
+                fillOutputDevicesList(it)
+            }
+        }
+        model.audioInterface.value?.let {
+            fillOutputDevicesList(it)
+        }
+    }
 
     override val root: Form = form {
-        maxWidth = 250.0 // TODO
+        maxWidth = 550.0 // TODO
+        prefWidth = 550.0
         fieldset("Output audio device") {
-            label(audioController.audioOutputDeviceProperty/*model.audioDevice.stringBinding {
-                if (it != null) {
-                    """
-                        ${it.interfaceName}
-                        ${it.deviceId}
-                        ${it.deviceDescription}
-                    """.trimIndent() // TODO Fix
-                } else "Default system output device"
-            }*/)
-            field {
-                combobox(values = audioController.outputAudioDevices, property = model.audioDevice)
+            field("LibVLC device") {
+                label(libvlcController.libvlcAudioDevice)
             }
-            field("Volume") {
-                slider(range = 0..100, value = audioController.masterVolumeProperty.get().value) {
-                    isShowTickMarks = true
-                    isShowTickLabels = true
-                    model.masterVolume.bindBidirectional(valueProperty())
-                }
+            field("Audio interface") {
+                combobox(model.audioInterface, libvlcController.audioInterfaces())
             }
-            buttonbar {
-                button("Cancel") {
-                    isCancelButton = true
-                    action {
-                        cancel()
-                    }
-                }
-                button("Save") {
-                    isDefaultButton = true
-                    enableWhen(model.dirty)
-                    action {
-                        save()
-                    }
+            field("Audio device") {
+                combobox(model.audioDevice, outputDevices) {
+                    enableWhen(Bindings.isNotNull(model.audioInterface as StringProperty))
                 }
             }
         }
+        fieldset("Master volume") {
+            slider(0..100, model.masterVolume.value) {
+                isShowTickMarks = true
+                isShowTickLabels = true
+                isSnapToTicks = true
+                blockIncrement = 2.0
+                majorTickUnit = 5.0
+                minorTickCount = 4
+                model.masterVolume.bindBidirectional(valueProperty())
+                tooltip {
+                    textProperty().bind(model.masterVolume.stringBinding { it?.toInt().toString() })
+                }
+            }
+        }
+        buttonbar {
+            button("Cancel") {
+                isCancelButton = true
+                action {
+                    cancel()
+                }
+            }
+            button("Save") {
+                isDefaultButton = true
+                enableWhen(model.dirty)
+                action(op = ::save)
+            }
+        }
+    }
+
+    private fun fillOutputDevicesList(interfaceName: String) {
+        outputDevices.setAll(libvlcController.interfaceAudioDevices(interfaceName))
     }
 
     private fun save() {
